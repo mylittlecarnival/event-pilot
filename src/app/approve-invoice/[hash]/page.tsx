@@ -184,7 +184,11 @@ export default function InvoiceApprovalPage() {
       // If approved and payment URL is provided, redirect to payment
       if (status === 'approved' && responseData.payment_url) {
         setTimeout(() => {
-          window.location.href = responseData.payment_url
+          // Ensure absolute URL for redirect
+          const paymentUrl = responseData.payment_url.startsWith('http')
+            ? responseData.payment_url
+            : `${window.location.origin}${responseData.payment_url.startsWith('/') ? '' : '/'}${responseData.payment_url}`
+          window.location.href = paymentUrl
         }, 2000) // Give user 2 seconds to see the approval confirmation
       }
 

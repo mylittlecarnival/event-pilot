@@ -79,7 +79,7 @@ export function Toggle({
         colors[color].bg,
         colors[color].dark,
         disabled && 'opacity-50 cursor-not-allowed',
-        checked ? 'focus:ring-blue-500' : 'focus:ring-gray-500',
+        checked ? 'focus:ring-primary' : 'focus:ring-gray-500',
         className
       )}
       {...props}

@@ -173,19 +173,37 @@ function generateApprovalEmailHtml(data: EstimateApprovalEmailData): string {
     <p>Please review the estimate and let us know your decision:</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <!--[if mso]>
-      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${data.approvalLink}" style="height:54px;v-text-anchor:middle;width:320px;" arcsize="11%" stroke="f" fillcolor="#059669">
-        <w:anchorlock/>
-        <center>
-      <![endif]-->
-      <a href="${data.approvalLink}" style="background-color: #059669; border-radius: 6px; color: #ffffff; display: inline-block; font-family: sans-serif; font-size: 16px; font-weight: bold; line-height: 54px; text-align: center; text-decoration: none; width: 320px; -webkit-text-size-adjust: none; mso-hide: all;">Review & Respond to Estimate</a>
-      <!--[if mso]>
-        </center>
-      </v:roundrect>
-      <![endif]-->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#059669" style="border-radius: 6px;">
+                  <!--[if mso]>
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${data.approvalLink}" style="height:54px;v-text-anchor:middle;width:320px;" arcsize="11%" stroke="f" fillcolor="#059669">
+                    <w:anchorlock/>
+                    <center style="color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:bold;">
+                      Review &amp; Respond to Estimate
+                    </center>
+                  </v:roundrect>
+                  <![endif]-->
+                  <!--[if !mso]><!-->
+                  <a href="${data.approvalLink}" target="_blank" style="background-color: #059669; border: 16px solid #059669; color: #ffffff; display: inline-block; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-align: center; text-decoration: none; border-radius: 6px; -webkit-text-size-adjust: none;">Review &amp; Respond to Estimate</a>
+                  <!--<![endif]-->
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
     </div>
 
     <p>This secure link will allow you to review all the details and approve or reject the estimate with any feedback.</p>
+
+    <p style="text-align: center; font-size: 14px; color: #6b7280; margin-top: 20px;">
+      <em>If the button above doesn't work, copy and paste this link into your browser:</em><br>
+      <a href="${data.approvalLink}" style="color: #059669; word-break: break-all;">${data.approvalLink}</a>
+    </p>
 
     <p>If you have any questions, please don't hesitate to contact us.</p>
 
@@ -284,19 +302,37 @@ function generateInvoiceApprovalEmailHtml(data: InvoiceApprovalEmailData): strin
     <p>Please review the invoice and let us know your decision:</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <!--[if mso]>
-      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${data.approvalLink}" style="height:54px;v-text-anchor:middle;width:300px;" arcsize="11%" stroke="f" fillcolor="#059669">
-        <w:anchorlock/>
-        <center>
-      <![endif]-->
-      <a href="${data.approvalLink}" style="background-color: #059669; border-radius: 6px; color: #ffffff; display: inline-block; font-family: sans-serif; font-size: 16px; font-weight: bold; line-height: 54px; text-align: center; text-decoration: none; width: 300px; -webkit-text-size-adjust: none; mso-hide: all;">Review & Approve Invoice</a>
-      <!--[if mso]>
-        </center>
-      </v:roundrect>
-      <![endif]-->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#059669" style="border-radius: 6px;">
+                  <!--[if mso]>
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${data.approvalLink}" style="height:54px;v-text-anchor:middle;width:300px;" arcsize="11%" stroke="f" fillcolor="#059669">
+                    <w:anchorlock/>
+                    <center style="color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:bold;">
+                      Review &amp; Approve Invoice
+                    </center>
+                  </v:roundrect>
+                  <![endif]-->
+                  <!--[if !mso]><!-->
+                  <a href="${data.approvalLink}" target="_blank" style="background-color: #059669; border: 16px solid #059669; color: #ffffff; display: inline-block; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-align: center; text-decoration: none; border-radius: 6px; -webkit-text-size-adjust: none;">Review &amp; Approve Invoice</a>
+                  <!--<![endif]-->
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
     </div>
 
     <p>This secure link will allow you to review all the details and approve or reject the invoice with any feedback.</p>
+
+    <p style="text-align: center; font-size: 14px; color: #6b7280; margin-top: 20px;">
+      <em>If the button above doesn't work, copy and paste this link into your browser:</em><br>
+      <a href="${data.approvalLink}" style="color: #059669; word-break: break-all;">${data.approvalLink}</a>
+    </p>
 
     <p>If you have any questions, please don't hesitate to contact us.</p>
 
@@ -434,19 +470,37 @@ function generateInvoicePaymentEmailHtml(data: InvoicePaymentEmailData): string 
     <p>Please click the secure payment link below to complete your payment:</p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <!--[if mso]>
-      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${data.paymentLink}" style="height:54px;v-text-anchor:middle;width:250px;" arcsize="11%" stroke="f" fillcolor="#059669">
-        <w:anchorlock/>
-        <center>
-      <![endif]-->
-      <a href="${data.paymentLink}" style="background-color: #059669; border-radius: 6px; color: #ffffff; display: inline-block; font-family: sans-serif; font-size: 16px; font-weight: bold; line-height: 54px; text-align: center; text-decoration: none; width: 250px; -webkit-text-size-adjust: none; mso-hide: all;">Pay Invoice Now</a>
-      <!--[if mso]>
-        </center>
-      </v:roundrect>
-      <![endif]-->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#059669" style="border-radius: 6px;">
+                  <!--[if mso]>
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${data.paymentLink}" style="height:54px;v-text-anchor:middle;width:250px;" arcsize="11%" stroke="f" fillcolor="#059669">
+                    <w:anchorlock/>
+                    <center style="color:#ffffff;font-family:sans-serif;font-size:16px;font-weight:bold;">
+                      Pay Invoice Now
+                    </center>
+                  </v:roundrect>
+                  <![endif]-->
+                  <!--[if !mso]><!-->
+                  <a href="${data.paymentLink}" target="_blank" style="background-color: #059669; border: 16px solid #059669; color: #ffffff; display: inline-block; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; text-align: center; text-decoration: none; border-radius: 6px; -webkit-text-size-adjust: none;">Pay Invoice Now</a>
+                  <!--<![endif]-->
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
     </div>
 
     <p>This secure payment link will allow you to pay using your credit card or other payment methods. Your payment information is processed securely through Stripe.</p>
+
+    <p style="text-align: center; font-size: 14px; color: #6b7280; margin-top: 20px;">
+      <em>If the button above doesn't work, copy and paste this link into your browser:</em><br>
+      <a href="${data.paymentLink}" style="color: #059669; word-break: break-all;">${data.paymentLink}</a>
+    </p>
 
     <p>If you have any questions about this invoice or need assistance with payment, please don't hesitate to contact us.</p>
 
