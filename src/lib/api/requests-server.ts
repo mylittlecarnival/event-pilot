@@ -213,7 +213,7 @@ export async function convertRequestToEstimate(requestId: string): Promise<strin
       event_date: request.event_date,
       event_start_time: request.event_start_time,
       event_end_time: request.event_end_time,
-      comment: request.notes, // Map notes to comment
+      comment: request.comment,
       referred_by: request.referred_by,
       status: 'draft',
     })

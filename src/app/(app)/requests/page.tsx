@@ -371,11 +371,11 @@ export default function Requests() {
                             )}
                           </div>
 
-                          {/* Notes */}
-                          {request.notes && (
+                          {/* Comment */}
+                          {request.comment && (
                             <div className="lg:col-span-2">
-                              <h3 className="text-sm font-semibold text-gray-900 mb-4">Notes</h3>
-                              <p className="text-sm text-gray-700 whitespace-pre-wrap">{request.notes}</p>
+                              <h3 className="text-sm font-semibold text-gray-900 mb-4">Comment</h3>
+                              <p className="text-sm text-gray-700 whitespace-pre-wrap">{request.comment}</p>
                             </div>
                           )}
 

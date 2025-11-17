@@ -5,7 +5,7 @@ export interface Request {
   phone: string | null
   organization_name: string | null
   event_date: string | null
-  notes: string | null
+  comment: string | null
   created_at: string
   updated_at: string
   deleted_at: string | null
