@@ -131,6 +131,9 @@ Event Pilot is a Next.js 15 application using the App Router with TypeScript, Ta
 **Component Library:**
 The project includes a comprehensive set of reusable UI components in `src/components/`, built on Headless UI:
 - Form components (input, textarea, select, checkbox, radio, switch, toggle)
+  - All form inputs use primary color (#EB2426) for focus states
+  - Focus indicators use border color change instead of rings
+  - Consistent styling across all form elements
 - Navigation components (navbar, sidebar, dropdown)
 - Display components (table, badge, avatar, alert, description-list, stat, spinner, pagination)
 - Layout components (dialog, fieldset, divider, stacked-layout, sidebar-layout)
@@ -146,12 +149,20 @@ The project includes a comprehensive set of reusable UI components in `src/compo
   - `digital-signature.tsx` - Digital signature component for approvals
   - `stripe-payment-form.tsx` - Stripe Elements payment form with PaymentElement integration
 
+**UI Patterns:**
+- Placeholder images for missing featured images across products, estimates, and invoices
+- Gradient backgrounds with camera icon for missing product images
+- Consistent image placeholder design: `bg-gradient-to-br from-zinc-100 to-zinc-200`
+
 ### Development Patterns
 
 **Authentication Flow:**
 - Server-side authentication using Supabase with cookie-based sessions
-- Protected routes wrapped in authentication checks
+- Protected routes wrapped in authentication checks via middleware
+- Middleware excludes static assets (images, SVG, PNG, etc.) from auth checks
+- Public assets accessible without authentication for login/approval pages
 - User profile data loaded in layout components
+- Logo component (`src/app/logo.tsx`) uses `/event-pilot.svg` for branding
 
 **Data Fetching:**
 - Server components use `createClient()` from `src/lib/supabase/server.ts`
@@ -232,6 +243,7 @@ The project includes a comprehensive set of reusable UI components in `src/compo
 - Activity logging for all payment-related actions
 - Secure payment processing with PCI compliance through Stripe
 - Support for multiple payment methods through Stripe Elements
+- Automatic redirect from invoice approval to payment page with absolute URL handling
 
 **Email Integration:**
 - Mailgun integration for all external communications
@@ -239,7 +251,10 @@ The project includes a comprehensive set of reusable UI components in `src/compo
   - Estimate approval requests
   - Invoice approval requests
   - Invoice payment requests
-- HTML templates with Outlook/Microsoft 365 compatibility
+- Table-based button layout for maximum email client compatibility
+- Buttons work across Gmail, Outlook (Windows/Mac), and Apple Mail
+- Fallback text links displayed below buttons with full URLs
+- HTML templates with Outlook/Microsoft 365 VML compatibility
 - Plain text fallback for all email types
 - Dynamic content based on event details and custom messages
 - Sender configuration via environment variables
@@ -254,16 +269,22 @@ The project includes a comprehensive set of reusable UI components in `src/compo
 - PCI compliance handled by Stripe
 
 **Styling:**
-- Tailwind CSS 4.x with custom configuration
-- Dark mode support (class-based, manual control)
+- Tailwind CSS 4.x with TypeScript configuration (`tailwind.config.ts`)
+- Dark mode support (class-based, manual control via `darkMode: 'class'`)
 - Component-based styling patterns
-- Consistent color scheme using zinc palette
+- Primary brand color: `#EB2426` (red) defined in CSS variables
+- Custom focus states using primary color instead of default blue
+- Border-based focus indicators (ring-0) on all form inputs
+- Consistent color scheme using CSS variables mapped to Tailwind utilities
 - Motion library integration for smooth animations
+- shadcn/ui compatible theme configuration with CSS variable system
+- Placeholder images for missing product/item images with gradient backgrounds
 
 **TypeScript Configuration:**
 - Strict TypeScript with ES2017 target
 - Path alias `@/*` maps to `src/*`
 - Next.js plugin for enhanced TypeScript support
+- Tailwind CSS config uses TypeScript (`tailwind.config.ts`) with type safety
 - Centralized type definitions in `src/types/`
   - `activity-logs.ts`
   - `estimates.ts`

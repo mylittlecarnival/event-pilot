@@ -37,6 +37,7 @@ import {
   UserGroupIcon,
   DocumentTextIcon,
   ClockIcon,
+  InboxIcon,
 } from '@heroicons/react/24/outline'
 import { usePathname } from 'next/navigation'
 
@@ -151,6 +152,10 @@ export function ApplicationLayout({
               <SidebarItem href="/invoices" current={pathname.startsWith('/invoices')}>
                 <ClipboardDocumentIcon />
                 <SidebarLabel>Invoices</SidebarLabel>
+              </SidebarItem>
+              <SidebarItem href="/requests" current={pathname.startsWith('/requests')}>
+                <InboxIcon />
+                <SidebarLabel>Requests</SidebarLabel>
               </SidebarItem>
               <SidebarItem href="/products" current={pathname.startsWith('/products')}>
                 <CubeTransparentIcon />
