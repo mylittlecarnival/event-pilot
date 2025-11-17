@@ -1,11 +1,14 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react'
 import { Heading } from '@/components/heading'
 import { Button } from '@/components/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/table'
 import { getRequests } from '@/lib/api/requests'
+import { deleteRequest, convertRequestToEstimate } from './actions'
+import { stripHtml } from '@/lib/utils'
 import type { Request } from '@/types/requests'
 
 function getStatusBadgeClass(status: string): string {
@@ -59,10 +62,12 @@ function formatTime(timeString: string | null): string {
 }
 
 export default function Requests() {
+  const router = useRouter()
   const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+  const [processingId, setProcessingId] = useState<string | null>(null)
 
   // Load requests on component mount
   useEffect(() => {
@@ -93,15 +98,53 @@ export default function Requests() {
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this request?')) {
-      // Delete logic will be implemented later
-      console.log('Delete request:', id)
+    if (!confirm('Are you sure you want to delete this request? This action cannot be undone.')) {
+      return
+    }
+
+    setProcessingId(id)
+    try {
+      const result = await deleteRequest(id)
+      if (result.success) {
+        // Remove the request from the local state
+        setRequests(prevRequests => prevRequests.filter(req => req.id !== id))
+        // Close the expanded row if it was open
+        setExpandedRows(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(id)
+          return newSet
+        })
+      } else {
+        alert(`Failed to delete request: ${result.error}`)
+      }
+    } catch (err) {
+      alert('An unexpected error occurred while deleting the request')
+      console.error('Delete error:', err)
+    } finally {
+      setProcessingId(null)
     }
   }
 
   const handleConvertToEstimate = async (id: string) => {
-    // Convert to estimate logic will be implemented later
-    console.log('Convert to estimate:', id)
+    if (!confirm('Convert this request to an estimate? The request status will be changed to Accepted.')) {
+      return
+    }
+
+    setProcessingId(id)
+    try {
+      const result = await convertRequestToEstimate(id)
+      if (result.success && result.estimateId) {
+        // Redirect to the new estimate
+        router.push(`/estimates/${result.estimateId}`)
+      } else {
+        alert(`Failed to convert request: ${result.error}`)
+        setProcessingId(null)
+      }
+    } catch (err) {
+      alert('An unexpected error occurred while converting the request')
+      console.error('Convert error:', err)
+      setProcessingId(null)
+    }
   }
 
   if (loading) {
@@ -313,7 +356,7 @@ export default function Requests() {
                                           {item.products?.name || 'Unknown Product'}
                                         </p>
                                         {item.products?.description && (
-                                          <div className="text-xs text-gray-500 mt-1 text-wrap">{item.products.description}</div>
+                                          <div className="text-xs text-gray-500 mt-1 text-wrap">{stripHtml(item.products.description)}</div>
                                         )}
                                       </div>
                                       <div className="flex-shrink-0 text-sm text-gray-600 whitespace-nowrap">
@@ -336,19 +379,39 @@ export default function Requests() {
                             </div>
                           )}
 
+                          {/* Accepted Estimate Link */}
+                          {request.estimates && (
+                            <div className="lg:col-span-2">
+                              <h3 className="text-sm font-semibold text-gray-900 mb-4">Accepted Estimate</h3>
+                              <a
+                                href={`/estimates/${request.estimates.id}`}
+                                className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Estimate #{request.estimates.estimate_number}
+                              </a>
+                            </div>
+                          )}
+
                           {/* Action Buttons */}
                           <div className="lg:col-span-2 pt-4 border-t border-gray-200">
                             <div className="flex gap-3">
-                              <Button
-                                onClick={() => handleConvertToEstimate(request.id)}
-                              >
-                                Convert to Estimate
-                              </Button>
+                              {!request.estimates && (
+                                <Button
+                                  onClick={() => handleConvertToEstimate(request.id)}
+                                  disabled={processingId === request.id}
+                                >
+                                  {processingId === request.id ? 'Converting...' : 'Convert to Estimate'}
+                                </Button>
+                              )}
                               <Button
                                 onClick={() => handleDelete(request.id)}
                                 color="red"
+                                disabled={processingId === request.id}
                               >
-                                Delete Request
+                                {processingId === request.id ? 'Deleting...' : 'Delete Request'}
                               </Button>
                             </div>
                           </div>

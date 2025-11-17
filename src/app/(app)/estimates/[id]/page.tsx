@@ -15,6 +15,7 @@ import { Heading, Subheading } from '@/components/heading'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '@/components/description-list'
 import { Divider } from '@/components/divider'
 import { Link } from '@/components/link'
+import { stripHtml } from '@/lib/utils'
 import {
   ChevronLeftIcon,
   TrashIcon,
@@ -477,7 +478,7 @@ export default function EstimateEdit() {
     const feeAmount = Math.round(subtotal * 0.035 * 100) / 100 // 3.5% rounded to 2 decimal places
 
     if (feeAmount <= 0) {
-      alert('Cannot add credit card fee: No items in estimate.')
+      alert('Cannot add credit card fee: Add prices to items.')
       return
     }
 
@@ -1566,7 +1567,7 @@ export default function EstimateEdit() {
                               </span>
                             )}
                           </div>
-                          <p className="text-sm/6 text-gray-500">{item.description}</p>
+                          <p className="text-sm/6 text-gray-500">{stripHtml(item.description)}</p>
                           <p className="text-xs/6 text-gray-400">SKU: {item.sku || 'N/A'}</p>
                         </div>
                         <div className="text-right">

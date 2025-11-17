@@ -13,7 +13,8 @@ export async function getRequests(): Promise<Request[]> {
       request_items(
         *,
         products(id, name, description)
-      )
+      ),
+      estimates!requests_accepted_estimate_id_fkey(id, estimate_number)
     `)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })

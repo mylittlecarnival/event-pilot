@@ -41,11 +41,13 @@ Event Pilot is a Next.js 15 application using the App Router with TypeScript, Ta
 - Supabase for authentication and database
 - Headless UI components for UI primitives
 - Heroicons for iconography
+- Lucide React icons for additional iconography
 - Motion library for animations
 - PDF generation (jsPDF, html2canvas)
 - File storage and management
 - Mailgun.js for email notifications
 - Stripe for payment processing (@stripe/stripe-js, @stripe/react-stripe-js, stripe)
+- @tanstack/react-table for advanced table features (expandable rows in requests page)
 
 **Route Structure:**
 - `src/app/(app)/` - Protected application routes requiring authentication
@@ -67,6 +69,10 @@ Event Pilot is a Next.js 15 application using the App Router with TypeScript, Ta
   - Invoice refund functionality (`/invoices/[id]/refund`)
   - External invoice approval workflow (`/approve-invoice/[hash]`)
   - External invoice payment workflow (`/invoice-payment/[hash]`)
+- **Requests** - Website request management (`/requests`)
+  - Index page only (no individual request detail pages)
+  - Expandable rows display full request details inline
+  - Convert to estimate and delete functionality
 - **Products** - Product/service catalog (`/products`)
   - Individual product details (`/products/[id]`)
   - New product creation (`/products/new`)
@@ -105,6 +111,7 @@ Event Pilot is a Next.js 15 application using the App Router with TypeScript, Ta
   - `invoices.ts` / `invoices-server.ts` - Invoice management (client/server)
   - `invoice-approvals-server.ts` - Invoice approval workflow operations
   - `invoice-payments-server.ts` - Invoice payment workflow operations
+  - `requests.ts` - Request management operations (client-side)
   - `activity-logs.ts` / `activity-logs-server.ts` - Activity tracking (client/server)
   - `disclosures.ts` / `disclosures-server.ts` - Disclosure management (client/server)
   - `settings.ts` - Application settings management
@@ -245,6 +252,25 @@ The project includes a comprehensive set of reusable UI components in `src/compo
 - Support for multiple payment methods through Stripe Elements
 - Automatic redirect from invoice approval to payment page with absolute URL handling
 
+**Request Management:**
+- Website request submission tracking and management (`/requests`)
+- Index page only with no individual detail pages (all details shown in expandable rows)
+- Table uses exact styling as estimates page (`src/components/table.tsx`)
+- Expandable rows display comprehensive request information:
+  - Contact Information (name, email, phone, organization, referred by)
+  - Event Details (date, time, type, guest count)
+  - Event Location (full address with street, city, state, zip, county)
+  - Requested Items (products with descriptions and quantities)
+  - Notes
+- Two status values: **Pending** (default, yellow badge) and **Accepted** (green badge)
+- Action buttons in expandable section:
+  - **Convert to Estimate** - Standard button (logic to be implemented)
+  - **Delete Request** - Red button with `color="red"`
+- Request data includes relationship to products via `request_items` table
+- Uses @tanstack/react-table for expandable row functionality
+- Text wrapping handled with `min-w-0`, `flex-shrink-0`, and `text-wrap` utilities
+- Chevron icons from lucide-react for expand/collapse indicators
+
 **Email Integration:**
 - Mailgun integration for all external communications
 - Three email types with dedicated templates:
@@ -289,6 +315,7 @@ The project includes a comprehensive set of reusable UI components in `src/compo
   - `activity-logs.ts`
   - `estimates.ts`
   - `invoices.ts`
+  - `requests.ts` - Request and RequestItem interfaces
   - `disclosures.ts`
   - `estimate-approvals.ts`
   - `invoice-approvals.ts`
@@ -313,6 +340,8 @@ The project includes a comprehensive set of reusable UI components in `src/compo
 - `estimate_approvals` - Estimate approval tracking with signature metadata
 - `invoice_approvals` - Invoice approval tracking with signature metadata
 - `invoice_payments` - Payment tracking with Stripe integration
+- `requests` - Website request submissions tracking
+- `request_items` - Items requested per request with product references
 - Additional tables: `estimates`, `invoices`, `contacts`, `organizations`, `products`, `activity_logs`
 
 **Migrations:**

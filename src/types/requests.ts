@@ -25,6 +25,10 @@ export interface Request {
   referred_by: string | null
   status: string | null
   request_items?: RequestItem[]
+  estimates?: {
+    id: string
+    estimate_number: string
+  }
 }
 
 export interface RequestItem {
@@ -39,5 +43,8 @@ export interface RequestItem {
     id: string
     name: string
     description: string | null
+    unit_price?: number | null
+    sku?: string | null
+    featured_image?: string | null
   }
 }
