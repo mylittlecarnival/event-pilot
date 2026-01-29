@@ -1,0 +1,211 @@
+name: Supabase Database Backup
+
+on:
+  # Run daily at midnight UTC
+  schedule:
+    - cron: '0 0 * * *'
+  
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+    inputs:
+      backup_reason:
+        description: 'Reason for manual backup'
+        required: false
+        default: 'Manual backup'
+
+env:
+  BACKUP_RETENTION_DAYS: 30
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Create backup directory
+        run: |
+          BACKUP_DATE=$(date +%Y-%m-%d)
+          BACKUP_DIR="backups/${BACKUP_DATE}"
+          mkdir -p "${BACKUP_DIR}"
+          echo "BACKUP_DIR=${BACKUP_DIR}" >> $GITHUB_ENV
+          echo "BACKUP_DATE=${BACKUP_DATE}" >> $GITHUB_ENV
+
+      - name: Dump database roles
+        run: |
+          supabase db dump \
+            --db-url "${{ secrets.SUPABASE_DB_URL }}" \
+            -f "${{ env.BACKUP_DIR }}/roles.sql" \
+            --role-only
+        continue-on-error: false
+
+      - name: Dump database schema
+        run: |
+          supabase db dump \
+            --db-url "${{ secrets.SUPABASE_DB_URL }}" \
+            -f "${{ env.BACKUP_DIR }}/schema.sql"
+        continue-on-error: false
+
+      - name: Dump database data
+        run: |
+          supabase db dump \
+            --db-url "${{ secrets.SUPABASE_DB_URL }}" \
+            -f "${{ env.BACKUP_DIR }}/data.sql" \
+            --use-copy \
+            --data-only
+        continue-on-error: false
+
+      - name: Create combined backup file
+        run: |
+          cat "${{ env.BACKUP_DIR }}/roles.sql" \
+              "${{ env.BACKUP_DIR }}/schema.sql" \
+              "${{ env.BACKUP_DIR }}/data.sql" \
+              > "${{ env.BACKUP_DIR }}/full-backup.sql"
+
+      - name: Generate backup metadata
+        run: |
+          cat > "${{ env.BACKUP_DIR }}/backup-info.json" << EOF
+          {
+            "date": "${{ env.BACKUP_DATE }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "trigger": "${{ github.event_name }}",
+            "reason": "${{ github.event.inputs.backup_reason || 'Scheduled backup' }}",
+            "commit": "${{ github.sha }}",
+            "roles_size": "$(wc -c < ${{ env.BACKUP_DIR }}/roles.sql)",
+            "schema_size": "$(wc -c < ${{ env.BACKUP_DIR }}/schema.sql)",
+            "data_size": "$(wc -c < ${{ env.BACKUP_DIR }}/data.sql)"
+          }
+          EOF
+
+      - name: Cleanup old backups
+        run: |
+          # Find and remove backup directories older than retention period
+          find backups -maxdepth 1 -type d -mtime +${{ env.BACKUP_RETENTION_DAYS }} -exec rm -rf {} \; 2>/dev/null || true
+          
+          # List remaining backups
+          echo "Current backups:"
+          ls -la backups/ || echo "No backups directory"
+
+      - name: Commit and push backups
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "backup: ${{ env.BACKUP_DATE }} - ${{ github.event.inputs.backup_reason || 'Scheduled backup' }}"
+          file_pattern: 'backups/**'
+          commit_user_name: 'GitHub Actions Bot'
+          commit_user_email: 'actions@github.com'
+
+      - name: Backup success summary
+        if: success()
+        run: |
+          echo "## ✅ Backup Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** ${{ env.BACKUP_DATE }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Location:** \`${{ env.BACKUP_DIR }}/\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Files Created" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| roles.sql | $(du -h ${{ env.BACKUP_DIR }}/roles.sql | cut -f1) |" >> $GITHUB_STEP_SUMMARY
+          echo "| schema.sql | $(du -h ${{ env.BACKUP_DIR }}/schema.sql | cut -f1) |" >> $GITHUB_STEP_SUMMARY
+          echo "| data.sql | $(du -h ${{ env.BACKUP_DIR }}/data.sql | cut -f1) |" >> $GITHUB_STEP_SUMMARY
+          echo "| full-backup.sql | $(du -h ${{ env.BACKUP_DIR }}/full-backup.sql | cut -f1) |" >> $GITHUB_STEP_SUMMARY
+
+      # ============================================
+      # OPTIONAL: Slack Notification
+      # Uncomment and add SLACK_WEBHOOK_URL secret
+      # ============================================
+      # - name: Notify Slack on success
+      #   if: success()
+      #   uses: slackapi/slack-github-action@v1.26.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "✅ Supabase backup completed successfully",
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #             "text": {
+      #               "type": "mrkdwn",
+      #               "text": "✅ *Supabase Backup Successful*\n*Date:* ${{ env.BACKUP_DATE }}\n*Trigger:* ${{ github.event_name }}"
+      #             }
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # - name: Notify Slack on failure
+      #   if: failure()
+      #   uses: slackapi/slack-github-action@v1.26.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "❌ Supabase backup FAILED",
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #             "text": {
+      #               "type": "mrkdwn",
+      #               "text": "❌ *Supabase Backup Failed*\n*Date:* ${{ env.BACKUP_DATE }}\n*Check:* <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
+      #             }
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # ============================================
+      # OPTIONAL: Email Notification via SendGrid
+      # Uncomment and add SENDGRID_API_KEY secret
+      # ============================================
+      # - name: Send email on failure
+      #   if: failure()
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: smtp.sendgrid.net
+      #     server_port: 587
+      #     username: apikey
+      #     password: ${{ secrets.SENDGRID_API_KEY }}
+      #     subject: "⚠️ Supabase Backup Failed - ${{ env.BACKUP_DATE }}"
+      #     body: |
+      #       The scheduled Supabase database backup has failed.
+      #       
+      #       Date: ${{ env.BACKUP_DATE }}
+      #       Repository: ${{ github.repository }}
+      #       
+      #       View the failed run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      #     to: your-email@example.com
+      #     from: backups@yourdomain.com
+
+  # ============================================
+  # OPTIONAL: Upload to S3/Cloud Storage
+  # Uncomment this job if you want off-site backups
+  # ============================================
+  # upload-to-s3:
+  #   needs: backup
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: main  # Pull latest with new backup
+  #
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: us-east-1
+  #
+  #     - name: Upload to S3
+  #       run: |
+  #         BACKUP_DATE=$(date +%Y-%m-%d)
+  #         aws s3 cp backups/${BACKUP_DATE}/ s3://your-bucket/supabase-backups/${BACKUP_DATE}/ --recursive
