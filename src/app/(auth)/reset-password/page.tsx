@@ -8,23 +8,36 @@ import { Input } from '@/components/input'
 import { Strong, Text, TextLink } from '@/components/text'
 import { Spinner } from '@/components/spinner'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-export default function ForgotPassword() {
+export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  const router = useRouter()
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true)
     setError('')
 
+    const password = String(formData.get('password'))
+    const confirmPassword = String(formData.get('confirm-password'))
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      setIsLoading(false)
+      return
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
+      setIsLoading(false)
+      return
+    }
+
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        String(formData.get('email')),
-        { redirectTo: `${window.location.origin}/reset-password` }
-      )
+      const { error } = await supabase.auth.updateUser({ password })
 
       if (error) {
         setError(error.message)
@@ -32,34 +45,17 @@ export default function ForgotPassword() {
         return
       }
 
-      setSuccess(true)
-      setIsLoading(false)
+      router.push('/')
     } catch {
       setError('An unexpected error occurred')
       setIsLoading(false)
     }
   }
 
-  if (success) {
-    return (
-      <div className="grid w-full max-w-sm grid-cols-1 gap-8">
-        <Logo className="h-9 text-zinc-950 forced-colors:text-[CanvasText]" />
-        <Heading>Check your email</Heading>
-        <Text>We&apos;ve sent you a password reset link. Click the link in your email to reset your password.</Text>
-        <Text>
-          <TextLink href="/login">
-            <Strong>Back to sign in</Strong>
-          </TextLink>
-        </Text>
-      </div>
-    )
-  }
-
   return (
-    <form action={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-8">
+    <form action={handleSubmit} className="grid w-full max-w-sm grid-cols-1 gap-3">
       <Logo className="h-9 text-zinc-950 forced-colors:text-[CanvasText]" />
-      <Heading>Reset your password</Heading>
-      <Text>Enter your email and we&apos;ll send you a link to reset your password.</Text>
+      <Heading>Set a new password</Heading>
 
       {error && (
         <div className="rounded-md bg-red-50 p-4 border border-red-200">
@@ -68,10 +64,20 @@ export default function ForgotPassword() {
       )}
 
       <Field>
-        <Label>Email</Label>
+        <Label>New password</Label>
         <Input
-          type="email"
-          name="email"
+          type="password"
+          name="password"
+          required
+          disabled={isLoading}
+          className={isLoading ? 'opacity-50 cursor-not-allowed' : ''}
+        />
+      </Field>
+      <Field>
+        <Label>Confirm password</Label>
+        <Input
+          type="password"
+          name="confirm-password"
           required
           disabled={isLoading}
           className={isLoading ? 'opacity-50 cursor-not-allowed' : ''}
@@ -79,22 +85,21 @@ export default function ForgotPassword() {
       </Field>
       <Button
         type="submit"
-        className="w-full"
+        className="w-full relative transition-all duration-150 ease-out"
         disabled={isLoading}
       >
         {isLoading ? (
           <div className="flex items-center justify-center gap-2">
             <Spinner size="sm" />
-            <span>Sending...</span>
+            <span>Updating...</span>
           </div>
         ) : (
-          'Reset password'
+          'Update password'
         )}
       </Button>
       <Text>
-        Don&apos;t have an account?{' '}
-        <TextLink href="/register">
-          <Strong>Sign up</Strong>
+        <TextLink href="/login">
+          <Strong>Back to sign in</Strong>
         </TextLink>
       </Text>
     </form>

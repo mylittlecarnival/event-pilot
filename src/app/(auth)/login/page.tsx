@@ -8,7 +8,7 @@ import { Heading } from '@/components/heading'
 import { Input } from '@/components/input'
 import { Strong, Text, TextLink } from '@/components/text'
 import { Spinner } from '@/components/spinner'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -16,6 +16,20 @@ export default function Login() {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
     const router = useRouter()
+
+    useEffect(() => {
+        // Detect recovery token in URL hash and redirect to reset-password page
+        const hash = window.location.hash
+        if (hash && hash.includes('type=recovery')) {
+            const supabase = createClient()
+            // Supabase client auto-detects the token from the hash and sets the session
+            supabase.auth.onAuthStateChange((event) => {
+                if (event === 'PASSWORD_RECOVERY') {
+                    router.replace('/reset-password')
+                }
+            })
+        }
+    }, [router])
 
     async function handleSubmit(formData: FormData) {
         // Immediate feedback

@@ -52,7 +52,8 @@ export async function middleware(request: NextRequest) {
     // Define protected routes (everything except auth pages and approval pages)
     const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
                        request.nextUrl.pathname.startsWith('/register') ||
-                       request.nextUrl.pathname.startsWith('/forgot-password')
+                       request.nextUrl.pathname.startsWith('/forgot-password') ||
+                       request.nextUrl.pathname.startsWith('/reset-password')
 
     const isApprovalRoute = request.nextUrl.pathname.startsWith('/approve/') ||
                             request.nextUrl.pathname.startsWith('/approve-invoice/') ||
@@ -64,7 +65,8 @@ export async function middleware(request: NextRequest) {
     }
 
     // If user is authenticated and trying to access auth pages, redirect to dashboard
-    if (user && isAuthRoute) {
+    // Exception: allow reset-password since the user is authenticated via recovery token
+    if (user && isAuthRoute && !request.nextUrl.pathname.startsWith('/reset-password')) {
       return NextResponse.redirect(new URL('/', request.url))
     }
 
