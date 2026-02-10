@@ -177,7 +177,6 @@ export default function CreateProduct() {
             <ImageUpload
               value={featuredImage || undefined}
               onChange={setFeaturedImage}
-              bucket="Products"
               folder="featured"
             />
           </div>
@@ -194,7 +193,6 @@ export default function CreateProduct() {
             <ImageGallery
               value={productGallery}
               onChange={setProductGallery}
-              bucket="Products"
               folder="gallery"
               maxImages={10}
             />

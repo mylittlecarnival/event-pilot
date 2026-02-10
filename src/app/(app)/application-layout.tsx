@@ -24,38 +24,33 @@ import { SidebarLayout } from '@/components/sidebar-layout'
 import {
   ArrowRightStartOnRectangleIcon,
   ChevronDownIcon,
+  ChevronRightIcon,
   ChevronUpIcon,
   ClipboardDocumentIcon,
-  LightBulbIcon,
   PlusIcon,
-  ShieldCheckIcon,
-  UserCircleIcon,
   HomeIcon,
   AdjustmentsVerticalIcon,
   BuildingOffice2Icon,
   CubeTransparentIcon,
   UserGroupIcon,
+  UsersIcon,
   DocumentTextIcon,
   ClockIcon,
   InboxIcon,
 } from '@heroicons/react/24/outline'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 
 function AccountDropdownMenu({ anchor }: { anchor: 'top start' | 'bottom end' }) {
   return (
     <DropdownMenu className="min-w-64" anchor={anchor}>
-      <DropdownItem href="#">
-        <UserCircleIcon />
-        <DropdownLabel>My account</DropdownLabel>
+      <DropdownItem href="/settings">
+        <AdjustmentsVerticalIcon />
+        <DropdownLabel>Settings</DropdownLabel>
       </DropdownItem>
-      <DropdownDivider />
-      <DropdownItem href="#">
-        <ShieldCheckIcon />
-        <DropdownLabel>Privacy policy</DropdownLabel>
-      </DropdownItem>
-      <DropdownItem href="#">
-        <LightBulbIcon />
-        <DropdownLabel>Share feedback</DropdownLabel>
+      <DropdownItem href="/activity-logs">
+        <ClockIcon />
+        <DropdownLabel>Activity Logs</DropdownLabel>
       </DropdownItem>
       <DropdownDivider />
       <DropdownItem href="/logout">
@@ -88,6 +83,7 @@ export function ApplicationLayout({
   profile: Profile | null
 }) {
   const pathname = usePathname()
+  const [crmOpen, setCrmOpen] = useState(true)
 
   return (
     <SidebarLayout
@@ -161,22 +157,29 @@ export function ApplicationLayout({
                 <CubeTransparentIcon />
                 <SidebarLabel>Products</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/contacts" current={pathname.startsWith('/contacts')}>
-                <UserGroupIcon />
-                <SidebarLabel>Contacts</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem href="/organizations" current={pathname.startsWith('/organizations')}>
-                <BuildingOffice2Icon />
-                <SidebarLabel>Organizations</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem href="/activity-logs" current={pathname.startsWith('/activity-logs')}>
-                <ClockIcon />
-                <SidebarLabel>Activity Logs</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem href="/settings" current={pathname.startsWith('/settings')}>
-                <AdjustmentsVerticalIcon />
-                <SidebarLabel>Settings</SidebarLabel>
-              </SidebarItem>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setCrmOpen(!crmOpen)}
+                  className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium text-zinc-950 sm:py-2 sm:text-sm/5 hover:bg-zinc-950/5"
+                >
+                  <UsersIcon data-slot="icon" className="size-6 shrink-0 stroke-zinc-500 sm:size-5" />
+                  <span className="truncate">CRM</span>
+                  <ChevronRightIcon data-slot="icon" className={`ml-auto size-5 shrink-0 stroke-zinc-500 transition-transform duration-200 sm:size-4 ${crmOpen ? 'rotate-90' : ''}`} />
+                </button>
+                {crmOpen && (
+                  <div className="pl-4">
+                    <SidebarItem href="/contacts" current={pathname.startsWith('/contacts')}>
+                      <UserGroupIcon />
+                      <SidebarLabel>Contacts</SidebarLabel>
+                    </SidebarItem>
+                    <SidebarItem href="/organizations" current={pathname.startsWith('/organizations')}>
+                      <BuildingOffice2Icon />
+                      <SidebarLabel>Organizations</SidebarLabel>
+                    </SidebarItem>
+                  </div>
+                )}
+              </div>
             </SidebarSection>
 
             {/* <SidebarSection className="max-lg:hidden">

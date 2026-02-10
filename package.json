@@ -6,9 +6,17 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push:dev": "supabase link --project-ref rbqohhxaooycgvpmcsdr && supabase db push",
+    "db:push:prod": "supabase link --project-ref jxywekbfedtywymqkrcn && supabase db push",
+    "db:pull:dev": "supabase link --project-ref rbqohhxaooycgvpmcsdr && supabase db pull",
+    "db:pull:prod": "supabase link --project-ref jxywekbfedtywymqkrcn && supabase db pull",
+    "db:seed:dev": "supabase link --project-ref rbqohhxaooycgvpmcsdr && psql $(supabase db url) -f supabase/seed.sql",
+    "db:reset:dev": "supabase link --project-ref rbqohhxaooycgvpmcsdr && supabase db reset --linked",
+    "db:new": "supabase migration new"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.986.0",
     "@headlessui/react": "^2.2.7",
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-slot": "^1.2.4",

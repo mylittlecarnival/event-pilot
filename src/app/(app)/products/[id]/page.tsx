@@ -282,7 +282,6 @@ export default function ProductEdit({ params }: Props) {
             <ImageUpload
               value={featuredImage || undefined}
               onChange={setFeaturedImage}
-              bucket="Products"
               folder="featured"
             />
           </div>
@@ -299,7 +298,6 @@ export default function ProductEdit({ params }: Props) {
             <ImageGallery
               value={productGallery}
               onChange={setProductGallery}
-              bucket="Products"
               folder="gallery"
               maxImages={10}
             />

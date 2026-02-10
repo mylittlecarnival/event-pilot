@@ -10,6 +10,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 
+### Database
+- `npm run db:reset:dev` - Fresh migration + seed for dev database (drops all, reruns migrations, seeds)
+- `npm run db:push:dev` - Push migrations to dev database
+- `npm run db:push:prod` - Push migrations to prod database
+- `npm run db:seed:dev` - Run seed file on dev database
+- `npm run db:new` - Create new migration file
+
 ### Environment Setup
 Requires environment variables:
 
