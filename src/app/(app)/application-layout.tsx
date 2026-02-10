@@ -32,8 +32,10 @@ import {
   AdjustmentsVerticalIcon,
   BuildingOffice2Icon,
   CubeTransparentIcon,
+  Square3Stack3DIcon,
+  TagIcon,
   UserGroupIcon,
-  UsersIcon,
+  IdentificationIcon,
   DocumentTextIcon,
   ClockIcon,
   InboxIcon,
@@ -84,6 +86,7 @@ export function ApplicationLayout({
 }) {
   const pathname = usePathname()
   const [crmOpen, setCrmOpen] = useState(true)
+  const [inventoryOpen, setInventoryOpen] = useState(true)
 
   return (
     <SidebarLayout
@@ -153,17 +156,36 @@ export function ApplicationLayout({
                 <InboxIcon />
                 <SidebarLabel>Requests</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href="/products" current={pathname.startsWith('/products')}>
-                <CubeTransparentIcon />
-                <SidebarLabel>Products</SidebarLabel>
-              </SidebarItem>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setInventoryOpen(!inventoryOpen)}
+                  className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium text-zinc-950 sm:py-2 sm:text-sm/5 hover:bg-zinc-950/5"
+                >
+                  <Square3Stack3DIcon data-slot="icon" className="size-6 shrink-0 stroke-zinc-500 sm:size-5" />
+                  <span className="truncate">Inventory</span>
+                  <ChevronRightIcon data-slot="icon" className={`ml-auto size-5 shrink-0 stroke-zinc-500 transition-transform duration-200 sm:size-4 ${inventoryOpen ? 'rotate-90' : ''}`} />
+                </button>
+                {inventoryOpen && (
+                  <div className="pl-4">
+                    <SidebarItem href="/products" current={pathname.startsWith('/products')}>
+                      <CubeTransparentIcon />
+                      <SidebarLabel>Products</SidebarLabel>
+                    </SidebarItem>
+                    <SidebarItem href="/categories" current={pathname.startsWith('/categories')}>
+                      <TagIcon />
+                      <SidebarLabel>Categories</SidebarLabel>
+                    </SidebarItem>
+                  </div>
+                )}
+              </div>
               <div>
                 <button
                   type="button"
                   onClick={() => setCrmOpen(!crmOpen)}
                   className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-base/6 font-medium text-zinc-950 sm:py-2 sm:text-sm/5 hover:bg-zinc-950/5"
                 >
-                  <UsersIcon data-slot="icon" className="size-6 shrink-0 stroke-zinc-500 sm:size-5" />
+                  <IdentificationIcon data-slot="icon" className="size-6 shrink-0 stroke-zinc-500 sm:size-5" />
                   <span className="truncate">CRM</span>
                   <ChevronRightIcon data-slot="icon" className={`ml-auto size-5 shrink-0 stroke-zinc-500 transition-transform duration-200 sm:size-4 ${crmOpen ? 'rotate-90' : ''}`} />
                 </button>

@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/button'
+import { Checkbox, CheckboxField, CheckboxGroup } from '@/components/checkbox'
 import { Divider } from '@/components/divider'
 import { Heading, Subheading } from '@/components/heading'
 import { ImageGallery, ImageUpload } from '@/components/image-upload'
@@ -9,11 +10,14 @@ import { SimpleToggle } from '@/components/toggle'
 import { Text } from '@/components/text'
 import { Textarea } from '@/components/textarea'
 import { TiptapEditor } from '@/components/tiptap-editor'
+import { Label } from '@/components/fieldset'
 import { createProduct } from '@/lib/api/products'
+import { getCategories, updateProductCategories } from '@/lib/api/categories'
+import type { CategoryWithProductCount } from '@/types/categories'
 import { ChevronLeftIcon } from '@heroicons/react/16/solid'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function CreateProduct() {
   const [saving, setSaving] = useState(false)
@@ -25,7 +29,13 @@ export default function CreateProduct() {
   const [featuredImage, setFeaturedImage] = useState<string | null>(null)
   const [productGallery, setProductGallery] = useState<string[]>([])
   const [description, setDescription] = useState<string>('')
+  const [categories, setCategories] = useState<CategoryWithProductCount[]>([])
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
   const router = useRouter()
+
+  useEffect(() => {
+    getCategories().then(setCategories)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | HTMLFormElement, actionType: 'save' | 'saveAndNew' = 'save') => {
     if ('preventDefault' in e) {
@@ -59,6 +69,9 @@ export default function CreateProduct() {
 
       const newProduct = await createProduct(productData)
       if (newProduct) {
+        if (selectedCategoryIds.length > 0) {
+          await updateProductCategories(newProduct.id, selectedCategoryIds)
+        }
         console.log('Product created successfully:', newProduct)
         setSaved(true)
 
@@ -196,6 +209,38 @@ export default function CreateProduct() {
               folder="gallery"
               maxImages={10}
             />
+          </div>
+        </section>
+
+        <Divider className="my-10" soft />
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+          <div className="space-y-1">
+            <Subheading>Categories</Subheading>
+            <Text>Assign this product to one or more categories.</Text>
+          </div>
+          <div>
+            {categories.length > 0 ? (
+              <CheckboxGroup>
+                {categories.map((category) => (
+                  <CheckboxField key={category.id}>
+                    <Checkbox
+                      checked={selectedCategoryIds.includes(category.id)}
+                      onChange={(checked) => {
+                        setSelectedCategoryIds((prev) =>
+                          checked
+                            ? [...prev, category.id]
+                            : prev.filter((id) => id !== category.id)
+                        )
+                      }}
+                    />
+                    <Label>{category.name}</Label>
+                  </CheckboxField>
+                ))}
+              </CheckboxGroup>
+            ) : (
+              <Text>No categories available. Create categories in the Categories page first.</Text>
+            )}
           </div>
         </section>
 

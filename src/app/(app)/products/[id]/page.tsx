@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/button'
-import { Checkbox, CheckboxField } from '@/components/checkbox'
+import { Checkbox, CheckboxField, CheckboxGroup } from '@/components/checkbox'
 import { Divider } from '@/components/divider'
 import { Heading, Subheading } from '@/components/heading'
 import { ImageGallery, ImageUpload } from '@/components/image-upload'
@@ -10,7 +10,10 @@ import { SimpleToggle } from '@/components/toggle'
 import { Text } from '@/components/text'
 import { Textarea } from '@/components/textarea'
 import { TiptapEditor } from '@/components/tiptap-editor'
+import { Label } from '@/components/fieldset'
 import { getProduct, updateProduct, deleteProduct, type Product } from '@/lib/api/products'
+import { getCategories, getProductCategories, updateProductCategories } from '@/lib/api/categories'
+import type { CategoryWithProductCount } from '@/types/categories'
 import { ArrowLeftIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -36,13 +39,19 @@ export default function ProductEdit({ params }: Props) {
   const [isInternal, setIsInternal] = useState<boolean>(false)
   const [isDefault, setIsDefault] = useState<boolean>(false)
   const [description, setDescription] = useState<string>('')
+  const [categories, setCategories] = useState<CategoryWithProductCount[]>([])
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const resolvedParams = await params
         setId(resolvedParams.id)
-        const data = await getProduct(resolvedParams.id)
+        const [data, allCategories, productCategoryIds] = await Promise.all([
+          getProduct(resolvedParams.id),
+          getCategories(),
+          getProductCategories(resolvedParams.id),
+        ])
         if (!data) {
           router.push('/products')
           return
@@ -54,6 +63,8 @@ export default function ProductEdit({ params }: Props) {
         setIsInternal(data.is_internal)
         setIsDefault(data.is_default)
         setDescription(data.description || '')
+        setCategories(allCategories)
+        setSelectedCategoryIds(productCategoryIds)
       } catch (error) {
         console.error('Error fetching product:', error)
         router.push('/products')
@@ -98,6 +109,7 @@ export default function ProductEdit({ params }: Props) {
 
       const updatedProduct = await updateProduct(id, productData)
       if (updatedProduct) {
+        await updateProductCategories(id, selectedCategoryIds)
         console.log('Product updated successfully:', updatedProduct)
         setSaved(true)
 
@@ -301,6 +313,38 @@ export default function ProductEdit({ params }: Props) {
               folder="gallery"
               maxImages={10}
             />
+          </div>
+        </section>
+
+        <Divider className="my-10" soft />
+
+        <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+          <div className="space-y-1">
+            <Subheading>Categories</Subheading>
+            <Text>Assign this product to one or more categories.</Text>
+          </div>
+          <div>
+            {categories.length > 0 ? (
+              <CheckboxGroup>
+                {categories.map((category) => (
+                  <CheckboxField key={category.id}>
+                    <Checkbox
+                      checked={selectedCategoryIds.includes(category.id)}
+                      onChange={(checked) => {
+                        setSelectedCategoryIds((prev) =>
+                          checked
+                            ? [...prev, category.id]
+                            : prev.filter((id) => id !== category.id)
+                        )
+                      }}
+                    />
+                    <Label>{category.name}</Label>
+                  </CheckboxField>
+                ))}
+              </CheckboxGroup>
+            ) : (
+              <Text>No categories available. Create categories in the Categories page first.</Text>
+            )}
           </div>
         </section>
 
