@@ -5,26 +5,32 @@ export async function GET() {
   try {
     const supabase = await createClient()
 
-    const { data: categories, error } = await supabase
-      .from('categories')
-      .select('*, product_categories(id)')
-      .is('deleted_at', null)
-      .order('name', { ascending: true })
+    // Fetch categories and product counts separately to avoid PostgREST join issues
+    const [categoriesResult, countsResult] = await Promise.all([
+      supabase
+        .from('categories')
+        .select('*')
+        .is('deleted_at', null)
+        .order('name', { ascending: true }),
+      supabase
+        .from('product_categories')
+        .select('category_id'),
+    ])
 
-    if (error) {
-      console.error('Error fetching categories:', error)
+    if (categoriesResult.error) {
+      console.error('Error fetching categories:', categoriesResult.error)
       return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 })
     }
 
-    // Map to include product_count
-    const categoriesWithCount = (categories || []).map((category) => ({
-      id: category.id,
-      name: category.name,
-      description: category.description,
-      created_at: category.created_at,
-      updated_at: category.updated_at,
-      deleted_at: category.deleted_at,
-      product_count: category.product_categories?.length || 0,
+    // Build a count map from junction rows
+    const countMap: Record<string, number> = {}
+    for (const row of countsResult.data || []) {
+      countMap[row.category_id] = (countMap[row.category_id] || 0) + 1
+    }
+
+    const categoriesWithCount = (categoriesResult.data || []).map((category) => ({
+      ...category,
+      product_count: countMap[category.id] || 0,
     }))
 
     return NextResponse.json(categoriesWithCount)
