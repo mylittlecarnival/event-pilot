@@ -68,6 +68,39 @@ export async function DELETE(
     const { id } = await params
     const supabase = await createClient()
 
+    // Get subcategory IDs for this category to clean up product_subcategories
+    const { data: subcategories } = await supabase
+      .from('subcategories')
+      .select('id')
+      .eq('category_id', id)
+      .is('deleted_at', null)
+
+    // Hard-delete product_subcategories junction rows for subcategories of this category
+    if (subcategories && subcategories.length > 0) {
+      const subcategoryIds = subcategories.map((s) => s.id)
+      const { error: subJunctionError } = await supabase
+        .from('product_subcategories')
+        .delete()
+        .in('subcategory_id', subcategoryIds)
+
+      if (subJunctionError) {
+        console.error('Error deleting product_subcategories:', subJunctionError)
+        return NextResponse.json({ error: 'Failed to delete subcategory associations' }, { status: 500 })
+      }
+    }
+
+    // Soft-delete subcategories of this category
+    const { error: subDeleteError } = await supabase
+      .from('subcategories')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('category_id', id)
+      .is('deleted_at', null)
+
+    if (subDeleteError) {
+      console.error('Error deleting subcategories:', subDeleteError)
+      return NextResponse.json({ error: 'Failed to delete subcategories' }, { status: 500 })
+    }
+
     // Hard-delete junction rows for this category
     const { error: junctionError } = await supabase
       .from('product_categories')

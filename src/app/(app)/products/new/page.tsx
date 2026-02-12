@@ -12,8 +12,8 @@ import { Textarea } from '@/components/textarea'
 import { TiptapEditor } from '@/components/tiptap-editor'
 import { Label } from '@/components/fieldset'
 import { createProduct } from '@/lib/api/products'
-import { getCategories, updateProductCategories } from '@/lib/api/categories'
-import type { CategoryWithProductCount } from '@/types/categories'
+import { getCategories, updateProductCategories, getAllSubcategories, updateProductSubcategories } from '@/lib/api/categories'
+import type { CategoryWithProductCount, SubcategoryWithProductCount } from '@/types/categories'
 import { ChevronLeftIcon } from '@heroicons/react/16/solid'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -31,10 +31,15 @@ export default function CreateProduct() {
   const [description, setDescription] = useState<string>('')
   const [categories, setCategories] = useState<CategoryWithProductCount[]>([])
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
+  const [allSubcategories, setAllSubcategories] = useState<SubcategoryWithProductCount[]>([])
+  const [selectedSubcategoryIds, setSelectedSubcategoryIds] = useState<string[]>([])
   const router = useRouter()
 
   useEffect(() => {
-    getCategories().then(setCategories)
+    Promise.all([getCategories(), getAllSubcategories()]).then(([cats, subs]) => {
+      setCategories(cats)
+      setAllSubcategories(subs)
+    })
   }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | HTMLFormElement, actionType: 'save' | 'saveAndNew' = 'save') => {
@@ -71,6 +76,13 @@ export default function CreateProduct() {
       if (newProduct) {
         if (selectedCategoryIds.length > 0) {
           await updateProductCategories(newProduct.id, selectedCategoryIds)
+        }
+        // Save subcategories filtered to only those belonging to selected categories
+        const validSubcategoryIds = selectedSubcategoryIds.filter((subId) =>
+          allSubcategories.some((sub) => sub.id === subId && selectedCategoryIds.includes(sub.category_id))
+        )
+        if (validSubcategoryIds.length > 0) {
+          await updateProductSubcategories(newProduct.id, validSubcategoryIds)
         }
         console.log('Product created successfully:', newProduct)
         setSaved(true)
@@ -217,27 +229,66 @@ export default function CreateProduct() {
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
           <div className="space-y-1">
             <Subheading>Categories</Subheading>
-            <Text>Assign this product to one or more categories.</Text>
+            <Text>Assign this product to categories and subcategories.</Text>
           </div>
           <div>
             {categories.length > 0 ? (
-              <CheckboxGroup>
-                {categories.map((category) => (
-                  <CheckboxField key={category.id}>
-                    <Checkbox
-                      checked={selectedCategoryIds.includes(category.id)}
-                      onChange={(checked) => {
-                        setSelectedCategoryIds((prev) =>
-                          checked
-                            ? [...prev, category.id]
-                            : prev.filter((id) => id !== category.id)
-                        )
-                      }}
-                    />
-                    <Label>{category.name}</Label>
-                  </CheckboxField>
-                ))}
-              </CheckboxGroup>
+              <div className="space-y-3">
+                {categories.map((category) => {
+                  const isSelected = selectedCategoryIds.includes(category.id)
+                  const catSubs = allSubcategories.filter((sub) => sub.category_id === category.id)
+                  return (
+                    <div key={category.id}>
+                      <CheckboxGroup>
+                        <CheckboxField>
+                          <Checkbox
+                            checked={isSelected}
+                            onChange={(checked) => {
+                              if (checked) {
+                                setSelectedCategoryIds((prev) => [...prev, category.id])
+                              } else {
+                                setSelectedCategoryIds((prev) => prev.filter((id) => id !== category.id))
+                                setSelectedSubcategoryIds((prev) =>
+                                  prev.filter((subId) => {
+                                    const sub = allSubcategories.find((s) => s.id === subId)
+                                    return sub ? sub.category_id !== category.id : true
+                                  })
+                                )
+                              }
+                            }}
+                          />
+                          <Label>{category.name}</Label>
+                        </CheckboxField>
+                      </CheckboxGroup>
+                      {isSelected && catSubs.length > 0 && (
+                        <div className="ml-6 mt-1 pl-2 border-l-2 border-zinc-200">
+                          <CheckboxGroup>
+                            {catSubs.map((sub) => (
+                              <CheckboxField key={sub.id}>
+                                <Checkbox
+                                  checked={selectedSubcategoryIds.includes(sub.id)}
+                                  onChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedSubcategoryIds((prev) => [...prev, sub.id])
+                                      // Auto-select parent category
+                                      setSelectedCategoryIds((prev) =>
+                                        prev.includes(sub.category_id) ? prev : [...prev, sub.category_id]
+                                      )
+                                    } else {
+                                      setSelectedSubcategoryIds((prev) => prev.filter((id) => id !== sub.id))
+                                    }
+                                  }}
+                                />
+                                <Label>{sub.name}</Label>
+                              </CheckboxField>
+                            ))}
+                          </CheckboxGroup>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             ) : (
               <Text>No categories available. Create categories in the Categories page first.</Text>
             )}

@@ -40,3 +40,7 @@ CREATE POLICY "Users can view product categories" ON product_categories
 
 CREATE POLICY "Users can manage product categories" ON product_categories
   FOR ALL USING (auth.role() = 'authenticated');
+
+-- Grant table permissions
+GRANT ALL ON categories TO authenticated;
+GRANT ALL ON product_categories TO authenticated;
